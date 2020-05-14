@@ -1,10 +1,9 @@
 #include <nana/gui.hpp>
 #include <nana/gui/widgets/form.hpp>
 #include <nana/gui/widgets/button.hpp>
-#include <nana/gui/widgets/checkbox.hpp>
 #include <nana/gui/widgets/label.hpp>
+#include <nana/gui/widgets/combox.hpp>
 #include <nana/gui/widgets/textbox.hpp>
-#include <nana/gui/widgets/scroll.hpp>
 
 #include <iostream>
 #include <thread>
@@ -21,7 +20,7 @@
 
 int main()
 {
-	nana::form main_form(nana::API::make_center(1000, 400));
+	nana::form main_form(nana::API::make_center(500, 200));
 	main_form.caption("visual sort");
 	main_form.bgcolor(nana::colors::white_smoke);
 	main_form.events().destroy([](){
@@ -30,18 +29,19 @@ int main()
 
 	nana::place place(main_form);
 	place.div(
-			"<width=15><vert "
-			"<height=15>"
-			"<al height=30>"
-			"<a>"
-			"<dl height=30>"
-			"<d>"
-			"<egl height=30>"
-			"< <eg><seed> height=30>"
-			"<height=15>"
-			"<start height=30>"
-			"<height=15>"
-			"><width=15>"
+			"<width=15>"
+			"<vert "
+				"<height=15>"
+				"<<al> <a> height=30>"
+				"<height=15>"
+				"<<dl> <d> height=30>"
+				"<height=15>"
+				"<<egl> <eg> <width=30> <seedl> <seed> height=30>"
+				"<height=15>"
+				"< <<delayl> <delay>> <width=15> <<scalel> <scale>> <width=15> <start> height=30>"
+				"<height=15>"
+			">"
+			"<width=15>"
 	);
 
 
@@ -58,9 +58,10 @@ int main()
 			"quick sort",
 			"std::sort",
 			"std::stable_sort",
-			"boost::spinsort",
-			"boost::sample_sort",
+			"boost::flat_stable_skort",
 			"boost::pdqsort",
+			"boost::sample_sort",
+			"boost::spinsort",
 	};
 	std::function<std::unique_ptr<animation_base>(nana::form& animation_form,
 												  nana::drawing& dw,
@@ -74,42 +75,34 @@ int main()
 			std::make_unique<quick_sort_animation, nana::form&, nana::drawing&, std::chrono::microseconds&>,
 			std::make_unique<std_sort_animation, nana::form&, nana::drawing&, std::chrono::microseconds&>,
 			std::make_unique<std_stable_sort_animation, nana::form&, nana::drawing&, std::chrono::microseconds&>,
-			std::make_unique<boost_spinsort_animation, nana::form&, nana::drawing&, std::chrono::microseconds&>,
-			std::make_unique<boost_sample_sort_animation, nana::form&, nana::drawing&, std::chrono::microseconds&>,
+			std::make_unique<boost_flat_stable_sort_animation, nana::form&, nana::drawing&, std::chrono::microseconds&>,
 			std::make_unique<boost_pdqsort_animation, nana::form&, nana::drawing&, std::chrono::microseconds&>,
+			std::make_unique<boost_sample_sort_animation, nana::form&, nana::drawing&, std::chrono::microseconds&>,
+			std::make_unique<boost_spinsort_animation, nana::form&, nana::drawing&, std::chrono::microseconds&>,
 	};
-	nana::radio_group sorting_algorithm_group;
-	int sorting_algorithm_id = 0;
-	nana::checkbox sorting_algorithm_radios[kerbal::container::size(sorting_algorithm_name)];
-
-	for (int i = 0; i < kerbal::container::size(sorting_algorithm_name); ++i) {
-		nana::checkbox& radio = sorting_algorithm_radios[i];
-		sorting_algorithm_group.add(radio);
-		radio.create(main_form, true);
-		radio.radio(true);
-		radio.bgcolor(nana::colors::white_smoke);
-		radio.caption(sorting_algorithm_name[i]);
-		if (sorting_algorithm_id == i) {
-			radio.check(true);
-		}
-		radio.events().click([i, &sorting_algorithm_id]() {
-			sorting_algorithm_id = i;
-		});
-		place["a"] << radio;
+	int sorting_algorithm_id = 6;
+	nana::combox sorting_algorithm_combox(main_form);
+	for (const auto & ele : sorting_algorithm_name) {
+		sorting_algorithm_combox.push_back(ele);
 	}
+	sorting_algorithm_combox.events().selected([&]() {
+		sorting_algorithm_id = sorting_algorithm_combox.option();
+	});
+	sorting_algorithm_combox.option(sorting_algorithm_id);
+	place["a"] << sorting_algorithm_combox;
 
 
 	nana::label data_generate_method_label(main_form, "data generate method");
 	place["dl"] << data_generate_method_label;
 	std::string data_generate_method_name[] = {
-			"const",
+			"constant",
 			"random",
 			"sorted",
-			"reverse",
-			"nearly_sorted",
-			"few_unique",
+			"reverse sorted",
+			"nearly sorted",
+			"few unique",
 			"sawtooth",
-			"reverse_sawtooth",
+			"reverse sawtooth",
 			"sin",
 	};
 	std::function<std::vector<int>(int, std::function<int()> &)> get_data_wrapper[] = {
@@ -124,25 +117,16 @@ int main()
 			get_sin<int, std::function<int()> >,
 	};
 
-	nana::radio_group data_generate_method_group;
 	int data_generate_method_id = 1;
-	nana::checkbox data_generate_method_radios[kerbal::container::size(data_generate_method_name)];
-
-	for (int i = 0; i < kerbal::container::size(data_generate_method_name); ++i) {
-		nana::checkbox& radio = data_generate_method_radios[i];
-		data_generate_method_group.add(radio);
-		radio.create(main_form, true);
-		radio.radio(true);
-		radio.bgcolor(nana::colors::white_smoke);
-		radio.caption(data_generate_method_name[i]);
-		if (data_generate_method_id == i) {
-			radio.check(true);
-		}
-		radio.events().click([i, &data_generate_method_id]() {
-			data_generate_method_id = i;
-		});
-		place["d"] << radio;
+	nana::combox data_generate_method_combox(main_form);
+	for (const auto & ele : data_generate_method_name) {
+		data_generate_method_combox.push_back(ele);
 	}
+	data_generate_method_combox.events().selected([&]() {
+		data_generate_method_id = data_generate_method_combox.option();
+	});
+	data_generate_method_combox.option(data_generate_method_id);
+	place["d"] << data_generate_method_combox;
 
 
 	nana::label random_engine_label(main_form, "random engine");
@@ -166,28 +150,20 @@ int main()
 			[&minstd_rand0]() { return minstd_rand0();},
 			[&mt19937]() { return mt19937();},
 	};
-	nana::radio_group random_engine_group;
-	int random_engine_id = 1;
-	nana::checkbox random_engine_radios[kerbal::container::size(random_engine_name)];
 
-	for (int i = 0; i < kerbal::container::size(random_engine_name); ++i) {
-		nana::checkbox& radio = random_engine_radios[i];
-		random_engine_group.add(radio);
-		radio.create(main_form, true);
-		radio.radio(true);
-		radio.bgcolor(nana::colors::white_smoke);
-		radio.caption(random_engine_name[i]);
-		if (random_engine_id == i) {
-			radio.check(true);
-		}
-		radio.events().click([i, &random_engine_id]() {
-			random_engine_id = i;
-		});
-		place["eg"] << radio;
+	int random_engine_id = 1;
+	nana::combox random_engine_combox(main_form);
+	for (const auto& ele : random_engine_name) {
+		random_engine_combox.push_back(ele);
 	}
+	random_engine_combox.events().selected([&]() {
+		random_engine_id = random_engine_combox.option();
+	});
+	random_engine_combox.option(random_engine_id);
+	place["eg"] << random_engine_combox;
 
 	nana::label random_engine_seed_label(main_form, "seed");
-	place["seed"] << random_engine_seed_label;
+	place["seedl"] << random_engine_seed_label;
 
 	int seed = 0;
 	nana::textbox random_engine_seed_textbox(main_form);
@@ -207,7 +183,7 @@ int main()
 
 
 	nana::label delay_label(main_form, "delay (us)");
-	place["start"] << delay_label;
+	place["delayl"] << delay_label;
 
 	using namespace std::chrono_literals;
 	std::chrono::microseconds delay = 50us;
@@ -225,7 +201,28 @@ int main()
 			delay_text_box.bgcolor(nana::colors::indian_red);
 		}
 	});
-	place["start"] << delay_text_box;
+	place["delay"] << delay_text_box;
+
+
+
+	nana::label scale_label(main_form, "data scale");
+	place["scalel"] << scale_label;
+
+	size_t scale = 500;
+	nana::textbox scale_text_box(main_form);
+	scale_text_box.set_accept([](wchar_t c) -> bool {
+		return c == 8 || c == 127 || std::isdigit(c);
+	});
+	scale_text_box.events().text_changed([&scale_label, &scale_text_box, &scale]() {
+		try {
+			scale = std::stoi(scale_text_box.caption());
+			scale_text_box.bgcolor(nana::colors::white);
+		} catch (...) {
+			scale_text_box.bgcolor(nana::colors::indian_red);
+		}
+	});
+	scale_text_box.caption(std::to_string(scale));
+	place["scale"] << scale_text_box;
 
 	nana::button start_button(main_form, "start");
 	start_button.events().click([&]() {
@@ -236,28 +233,28 @@ int main()
 			", " +
 			data_generate_method_name[data_generate_method_id] +
 			", " +
-			random_engine_name[random_engine_id] + " (with seed = " +
-			std::to_string(seed) + ")"
+			random_engine_name[random_engine_id] + " (with seed = " + std::to_string(seed) + ")" +
+			", " +
+			"scale = " + std::to_string(scale)
 		);
 
 		nana::drawing dw(animation_form);
 
-		int n = 1000;
 		reseed_engine(seed);
-		std::vector<int> v = get_data_wrapper[data_generate_method_id](n, engine_wrapper[random_engine_id]);
+		std::vector<int> v = get_data_wrapper[data_generate_method_id](scale, engine_wrapper[random_engine_id]);
+		/*for (auto e : v) {
+			std::cout << e << std::endl;
+		}*/
 		std::unique_ptr<animation_base> animation = generate_animation[sorting_algorithm_id](animation_form, dw, delay);
-		animation->prepare(v.begin(), v.end(), std::less<int>());
 
-		dw.draw(std::bind(&animation_base::draw, animation.get(), std::placeholders::_1));
-		std::thread animation_thread([&animation] {
+		std::thread animation_thread([&animation, &v] {
 			std::cout << "animation start!" << std::endl;
-			animation->start();
+			animation->start(v.begin(), v.end(), std::less<int>());
 			std::cout << "down!" << std::endl;
 		});
 		animation_form.show();
 		nana::exec();
 		animation_thread.join();
-
 	});
 	place["start"] << start_button;
 
