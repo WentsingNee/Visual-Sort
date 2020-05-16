@@ -52,10 +52,15 @@ int main()
 			"bubble sort",
 			"selection sort",
 			"heap sort",
+			"std::make_heap then sort",
 			"merge sort",
 			"insertion sort",
-			"shell sort",
+			"directly insertion sort",
+			"shell sort (hibbard sequence)",
+			"shell sort (minimun limit hibbard sequence)",
+			"shell sort (reduce by half)",
 			"quick sort",
+			"intro sort",
 			"std::sort",
 			"std::stable_sort",
 			"boost::flat_stable_skort",
@@ -69,10 +74,15 @@ int main()
 			std::make_unique<bubble_sort_animation, nana::form&, nana::drawing&, std::chrono::microseconds&>,
 			std::make_unique<selection_sort_animation, nana::form&, nana::drawing&, std::chrono::microseconds&>,
 			std::make_unique<heap_sort_animation, nana::form&, nana::drawing&, std::chrono::microseconds&>,
+			std::make_unique<std_make_heap_then_sort_animation, nana::form&, nana::drawing&, std::chrono::microseconds&>,
 			std::make_unique<merge_sort_animation, nana::form&, nana::drawing&, std::chrono::microseconds&>,
 			std::make_unique<insertion_sort_animation, nana::form&, nana::drawing&, std::chrono::microseconds&>,
-			std::make_unique<shell_sort_animation, nana::form&, nana::drawing&, std::chrono::microseconds&>,
+			std::make_unique<directly_insertion_sort_animation, nana::form&, nana::drawing&, std::chrono::microseconds&>,
+			std::make_unique<shell_sort_hibbard_sequence_animation, nana::form&, nana::drawing&, std::chrono::microseconds&>,
+			std::make_unique<shell_sort_minimun_limit_hibbard_sequence_animation, nana::form&, nana::drawing&, std::chrono::microseconds&>,
+			std::make_unique<shell_sort_reduce_by_half_animation, nana::form&, nana::drawing&, std::chrono::microseconds&>,
 			std::make_unique<quick_sort_animation, nana::form&, nana::drawing&, std::chrono::microseconds&>,
+			std::make_unique<intro_sort_animation, nana::form&, nana::drawing&, std::chrono::microseconds&>,
 			std::make_unique<std_sort_animation, nana::form&, nana::drawing&, std::chrono::microseconds&>,
 			std::make_unique<std_stable_sort_animation, nana::form&, nana::drawing&, std::chrono::microseconds&>,
 			std::make_unique<boost_flat_stable_sort_animation, nana::form&, nana::drawing&, std::chrono::microseconds&>,
@@ -80,7 +90,7 @@ int main()
 			std::make_unique<boost_sample_sort_animation, nana::form&, nana::drawing&, std::chrono::microseconds&>,
 			std::make_unique<boost_spinsort_animation, nana::form&, nana::drawing&, std::chrono::microseconds&>,
 	};
-	int sorting_algorithm_id = 6;
+	int sorting_algorithm_id = 10;
 	nana::combox sorting_algorithm_combox(main_form);
 	for (const auto & ele : sorting_algorithm_name) {
 		sorting_algorithm_combox.push_back(ele);
@@ -242,9 +252,9 @@ int main()
 
 		reseed_engine(seed);
 		std::vector<int> v = get_data_wrapper[data_generate_method_id](scale, engine_wrapper[random_engine_id]);
-		/*for (auto e : v) {
-			std::cout << e << std::endl;
-		}*/
+		//for (auto e : v) {
+		//	std::cout << e << std::endl;
+		//}
 		std::unique_ptr<animation_base> animation = generate_animation[sorting_algorithm_id](animation_form, dw, delay);
 
 		std::thread animation_thread([&animation, &v] {

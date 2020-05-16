@@ -48,7 +48,7 @@ class animation_base
 
 				int i = 0;
 				while (first != last) {
-					v.push_back({ *first, i });
+					v.push_back({*first, i});
 					++first;
 					++i;
 				}
@@ -85,6 +85,8 @@ class animation_base
 					}
 					graphic.string({ 10, 10 }, "compare times: " + std::to_string(cmp_cnt));
 				});
+				int i = 0;
+				using namespace std::chrono_literals;
 				this->sort([this, &value_compare, &highlight, &cmp_cnt](const Ele& lhs, const Ele& rhs) {
 					highlight[0] = lhs.second;
 					highlight[1] = rhs.second;
