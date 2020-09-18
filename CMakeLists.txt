@@ -1,20 +1,24 @@
 cmake_minimum_required(VERSION 3.15)
-project(visual_sort)
+project(visual_sort CXX)
 
 set(CMAKE_CXX_STANDARD 17)
 
+include_directories(./cpp-TimSort/include)
 
-if ("${COMPILER}" STREQUAL "MSVC")
-    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /Zc:__cplusplus")
-    message(STATUS "CXX flags: /Zc:__cplusplus")
-    include_directories(C:/Users/Peter/include)
-    include_directories(C:/Users/Peter/git/Kerbal/include)
-    add_executable(visual_sort src/main.cpp)
-    link_directories(C:/Users/Peter/lib_vs)
-    target_link_libraries(visual_sort nana_v142_Release_x64.lib)
-else()
-    add_executable(visual_sort src/main.cpp)
+add_subdirectory(./include)
+add_subdirectory(./src)
+
+
+message("compiler: ${CMAKE_CXX_COMPILER_ID}")
+
+if (CMAKE_CXX_COMPILER_ID MATCHES "GNU" OR CMAKE_CXX_COMPILER_ID MATCHES "Clang")
     target_link_libraries(visual_sort -lnana)
     target_link_libraries(visual_sort -lXcursor)
     target_link_libraries(visual_sort -lpthread)
+    target_link_libraries(visual_sort -lomp)
+elseif (CMAKE_CXX_COMPILER_ID MATCHES "MSVC")
+    include_directories(C:/Users/Peter/include)
+    include_directories(C:/Users/Peter/git/Kerbal/include)
+    link_directories(C:/Users/Peter/lib_vs)
+    target_link_libraries(visual_sort nana_v142_Release_x64.lib)
 endif()

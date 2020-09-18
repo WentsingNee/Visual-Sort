@@ -10,20 +10,139 @@
 #include <memory>
 
 
-#include "get_data.hpp"
-#include "animation.hpp"
+#include "template_instantiation/sequence_generator.inst.hpp"
+#include "template_instantiation/sorting_algorithm.inst.hpp"
+#include "template_instantiation/vector.inst.hpp"
 
-#include <kerbal/container/nonmember_container_access.hpp>
+#include "animation.hpp"
 
 #include <kerbal/random/linear_congruential_engine.hpp>
 #include <kerbal/random/mersenne_twister_engine.hpp>
+#include "polymorphic_random_engine.hpp"
+
+struct sorting_algorithms_module
+{
+		inline static constexpr const char * sorting_algorithm_name[] = {
+				"bubble sort",
+				"selection sort",
+				"heap sort",
+				"std::make_heap then sort",
+				"merge sort",
+				"inplace merge sort",
+				"stable sort",
+				"insertion sort",
+				"directly insertion sort",
+				"shell sort (hibbard sequence)",
+				"shell sort (minimun limit hibbard sequence)",
+				"shell sort (reduce by half)",
+				"shell sort (q)",
+				"quick sort",
+				"nonrecursive qsort",
+				"intro sort",
+				"nonrecursive intro sort",
+				"std::sort",
+				"std::stable_sort",
+				"c qsort",
+				"kerbal::omp::quick_sort",
+//				"kerbal::omp::merge_sort",
+				"kerbal::omp::shell_sort",
+				"boost::flat_stable_skort",
+				"boost::pdqsort",
+				"boost::sample_sort",
+				"boost::spinsort",
+				"gfx::timsort",
+		};
+
+		template <typename Animation>
+		static constexpr auto make_u = std::make_unique<Animation, nana::form&, nana::drawing&, std::chrono::microseconds&>;
+
+		inline static std::function<std::unique_ptr<animation_base>(
+				nana::form& animation_form,
+				nana::drawing& dw,
+				std::chrono::microseconds& delay)>
+				generate_animation[] = {
+				make_u<standard_animation<kerbal::algorithm::bubble_sort<Iter, BinaryPredict> > >,
+				make_u<standard_animation<kerbal::algorithm::selection_sort<Iter, BinaryPredict> > >,
+				make_u<standard_animation<kerbal::algorithm::heap_sort<Iter, BinaryPredict> > >,
+				make_u<std_make_heap_then_sort_animation>,
+				make_u<standard_animation<kerbal::algorithm::merge_sort<Iter, BinaryPredict> > >,
+				make_u<standard_animation<kerbal::algorithm::inplace_merge_sort<Iter, BinaryPredict> > >,
+				make_u<standard_animation<kerbal::algorithm::stable_sort<Iter, BinaryPredict> > >,
+				make_u<standard_animation<kerbal::algorithm::insertion_sort<Iter, BinaryPredict> > >,
+				make_u<standard_animation<kerbal::algorithm::directly_insertion_sort<Iter, BinaryPredict> > >,
+				make_u<shell_sort_hibbard_sequence_animation>,
+				make_u<shell_sort_minimun_limit_hibbard_sequence_animation>,
+				make_u<shell_sort_reduce_by_half_animation>,
+				make_u<shell_sort_q_animation>,
+				make_u<standard_animation<kerbal::algorithm::quick_sort<Iter, BinaryPredict> > >,
+				make_u<standard_animation<kerbal::algorithm::nonrecursive_qsort<Iter, BinaryPredict> > >,
+				make_u<standard_animation<kerbal::algorithm::intro_sort<Iter, BinaryPredict> > >,
+				make_u<standard_animation<kerbal::algorithm::nonrecursive_intro_sort<Iter, BinaryPredict> > >,
+				make_u<standard_animation<std::sort<Iter, BinaryPredict> > >,
+				make_u<standard_animation<std::stable_sort<Iter, BinaryPredict> > >,
+				make_u<c_qsort_animation>,
+				make_u<kerbal_omp_quick_sort_animation>,
+//				make_u<kerbal_omp_merge_sort_animation>,
+				make_u<kerbal_omp_shell_sort_animation>,
+				make_u<standard_animation<boost::sort::flat_stable_sort<Iter, BinaryPredict> > >,
+				make_u<standard_animation<boost::sort::pdqsort<Iter, BinaryPredict> > >,
+				make_u<standard_animation<boost::sort::sample_sort<Iter, BinaryPredict> > >,
+				make_u<standard_animation<boost::sort::spinsort<Iter, BinaryPredict> > >,
+				make_u<standard_animation<gfx::timsort<Iter, BinaryPredict> > >,
+		};
+
+		sorting_algorithms_module(nana::form& main_form, nana::place& place, nana::label& label, int& id,
+								  nana::combox& combox)
+		{
+			place["al"] << label;
+			id = 13;
+			for (const auto& ele : sorting_algorithm_name) {
+				combox.push_back(ele);
+			}
+			combox.events().selected([&]() {
+				id = combox.option();
+			});
+			combox.option(id);
+			place["a"] << combox;
+		}
+};
+
+struct sequence_generator_module
+{
+		inline static constexpr const char* sequence_generator_name[] = {
+				"constant",
+				"random",
+				"sorted",
+				"reverse sorted",
+				"nearly sorted",
+				"few unique",
+				"sawtooth",
+				"reverse sawtooth",
+				"sin",
+				"perlin_noise",
+		};
+
+		inline static constexpr std::vector<int> (* sequence_generator[])(int, polymorphic_random_engine&) = {
+				get_constant_sequence,
+				get_random_sequence,
+				get_sorted_sequence,
+				get_reverse_sequence,
+				get_nearly_sorted_sequence,
+				get_few_unique_sequence,
+				get_sawtooth_sequence,
+				get_reverse_sawtooth_sequence,
+				get_sin_wave_sequence,
+				get_perlin_noise_sequence,
+		};
+
+};
 
 int main()
 {
 	nana::form main_form(nana::API::make_center(500, 200));
 	main_form.caption("visual sort");
 	main_form.bgcolor(nana::colors::white_smoke);
-	main_form.events().destroy([](){
+	main_form.events().destroy([]() {
 		std::quick_exit(0);
 	});
 
@@ -31,112 +150,39 @@ int main()
 	place.div(
 			"<width=15>"
 			"<vert "
-				"<height=15>"
-				"<<al> <a> height=30>"
-				"<height=15>"
-				"<<dl> <d> height=30>"
-				"<height=15>"
-				"<<egl> <eg> <width=30> <seedl> <seed> height=30>"
-				"<height=15>"
-				"< <<delayl> <delay>> <width=15> <<scalel> <scale>> <width=15> <start> height=30>"
-				"<height=15>"
+			"<height=15>"
+			"<<al> <a> height=30>"
+			"<height=15>"
+			"<<seq_gen_lable> <seq_gen_combox> height=30>"
+			"<height=15>"
+			"<<egl> <eg> <width=30> <seedl> <seed> height=30>"
+			"<height=15>"
+			"< <<delayl> <delay>> <width=15> <<scalel> <scale>> <width=15> <start> height=30>"
+			"<height=15>"
 			">"
 			"<width=15>"
 	);
 
 
-
 	nana::label sorting_algorithm_label(main_form, "sorting algorithm");
-	place["al"] << sorting_algorithm_label;
-	std::string sorting_algorithm_name[] = {
-			"bubble sort",
-			"selection sort",
-			"heap sort",
-			"std::make_heap then sort",
-			"merge sort",
-			"insertion sort",
-			"directly insertion sort",
-			"shell sort (hibbard sequence)",
-			"shell sort (minimun limit hibbard sequence)",
-			"shell sort (reduce by half)",
-			"quick sort",
-			"intro sort",
-			"std::sort",
-			"std::stable_sort",
-			"boost::flat_stable_skort",
-			"boost::pdqsort",
-			"boost::sample_sort",
-			"boost::spinsort",
-	};
-	std::function<std::unique_ptr<animation_base>(nana::form& animation_form,
-												  nana::drawing& dw,
-												  std::chrono::microseconds& delay)> generate_animation[] = {
-			std::make_unique<bubble_sort_animation, nana::form&, nana::drawing&, std::chrono::microseconds&>,
-			std::make_unique<selection_sort_animation, nana::form&, nana::drawing&, std::chrono::microseconds&>,
-			std::make_unique<heap_sort_animation, nana::form&, nana::drawing&, std::chrono::microseconds&>,
-			std::make_unique<std_make_heap_then_sort_animation, nana::form&, nana::drawing&, std::chrono::microseconds&>,
-			std::make_unique<merge_sort_animation, nana::form&, nana::drawing&, std::chrono::microseconds&>,
-			std::make_unique<insertion_sort_animation, nana::form&, nana::drawing&, std::chrono::microseconds&>,
-			std::make_unique<directly_insertion_sort_animation, nana::form&, nana::drawing&, std::chrono::microseconds&>,
-			std::make_unique<shell_sort_hibbard_sequence_animation, nana::form&, nana::drawing&, std::chrono::microseconds&>,
-			std::make_unique<shell_sort_minimun_limit_hibbard_sequence_animation, nana::form&, nana::drawing&, std::chrono::microseconds&>,
-			std::make_unique<shell_sort_reduce_by_half_animation, nana::form&, nana::drawing&, std::chrono::microseconds&>,
-			std::make_unique<quick_sort_animation, nana::form&, nana::drawing&, std::chrono::microseconds&>,
-			std::make_unique<intro_sort_animation, nana::form&, nana::drawing&, std::chrono::microseconds&>,
-			std::make_unique<std_sort_animation, nana::form&, nana::drawing&, std::chrono::microseconds&>,
-			std::make_unique<std_stable_sort_animation, nana::form&, nana::drawing&, std::chrono::microseconds&>,
-			std::make_unique<boost_flat_stable_sort_animation, nana::form&, nana::drawing&, std::chrono::microseconds&>,
-			std::make_unique<boost_pdqsort_animation, nana::form&, nana::drawing&, std::chrono::microseconds&>,
-			std::make_unique<boost_sample_sort_animation, nana::form&, nana::drawing&, std::chrono::microseconds&>,
-			std::make_unique<boost_spinsort_animation, nana::form&, nana::drawing&, std::chrono::microseconds&>,
-	};
-	int sorting_algorithm_id = 10;
+	int sorting_algorithm_id;
 	nana::combox sorting_algorithm_combox(main_form);
-	for (const auto & ele : sorting_algorithm_name) {
-		sorting_algorithm_combox.push_back(ele);
+	sorting_algorithms_module(main_form, place, sorting_algorithm_label, sorting_algorithm_id,
+							  sorting_algorithm_combox);
+
+	nana::label data_generate_method_label(main_form, "sequence generator");
+	place["seq_gen_lable"] << data_generate_method_label;
+
+	int sequence_generator_id = 1;
+	nana::combox sequence_generator_combox(main_form);
+	for (const auto& ele : sequence_generator_module::sequence_generator_name) {
+		sequence_generator_combox.push_back(ele);
 	}
-	sorting_algorithm_combox.events().selected([&]() {
-		sorting_algorithm_id = sorting_algorithm_combox.option();
+	sequence_generator_combox.events().selected([&]() {
+		sequence_generator_id = sequence_generator_combox.option();
 	});
-	sorting_algorithm_combox.option(sorting_algorithm_id);
-	place["a"] << sorting_algorithm_combox;
-
-
-	nana::label data_generate_method_label(main_form, "data generate method");
-	place["dl"] << data_generate_method_label;
-	std::string data_generate_method_name[] = {
-			"constant",
-			"random",
-			"sorted",
-			"reverse sorted",
-			"nearly sorted",
-			"few unique",
-			"sawtooth",
-			"reverse sawtooth",
-			"sin",
-	};
-	std::function<std::vector<int>(int, std::function<int()> &)> get_data_wrapper[] = {
-			get_const<int, std::function<int()> >,
-			get_random<int, std::function<int()> >,
-			get_sorted<int, std::function<int()> >,
-			get_reverse<int, std::function<int()> >,
-			get_nearly_sorted<int, std::function<int()> >,
-			get_few_unique<int, std::function<int()> >,
-			get_sawtooth_array<int, std::function<int()> >,
-			get_reverse_sawtooth_array<int, std::function<int()> >,
-			get_sin<int, std::function<int()> >,
-	};
-
-	int data_generate_method_id = 1;
-	nana::combox data_generate_method_combox(main_form);
-	for (const auto & ele : data_generate_method_name) {
-		data_generate_method_combox.push_back(ele);
-	}
-	data_generate_method_combox.events().selected([&]() {
-		data_generate_method_id = data_generate_method_combox.option();
-	});
-	data_generate_method_combox.option(data_generate_method_id);
-	place["d"] << data_generate_method_combox;
+	sequence_generator_combox.option(sequence_generator_id);
+	place["seq_gen_combox"] << sequence_generator_combox;
 
 
 	nana::label random_engine_label(main_form, "random engine");
@@ -146,20 +192,7 @@ int main()
 			"minstd_rand0",
 			"mt19937",
 	};
-	kerbal::random::minstd_rand minstd_rand;
-	kerbal::random::minstd_rand0 minstd_rand0;
-	kerbal::random::mt19937 mt19937;
-	auto reseed_engine = [&](int seed) {
-		minstd_rand.seed(seed);
-		minstd_rand0.seed(seed);
-		mt19937 = kerbal::random::mt19937(seed);
-	};
-
-	std::function<int()> engine_wrapper[] = {
-			[&minstd_rand]() { return minstd_rand();},
-			[&minstd_rand0]() { return minstd_rand0();},
-			[&mt19937]() { return mt19937();},
-	};
+	std::unique_ptr<polymorphic_random_engine> polymorphic_random_engine = nullptr;
 
 	int random_engine_id = 1;
 	nana::combox random_engine_combox(main_form);
@@ -168,6 +201,18 @@ int main()
 	}
 	random_engine_combox.events().selected([&]() {
 		random_engine_id = random_engine_combox.option();
+		switch (random_engine_id) {
+			case 0:
+				polymorphic_random_engine = std::make_unique<polymorphic_random_engine_wrapper<kerbal::random::minstd_rand>>();
+				break;
+			case 1:
+				polymorphic_random_engine = std::make_unique<polymorphic_random_engine_wrapper<kerbal::random::minstd_rand0>>();
+				break;
+			case 2:
+				polymorphic_random_engine = std::make_unique<polymorphic_random_engine_wrapper<kerbal::random::mt19937>>();
+				break;
+		}
+
 	});
 	random_engine_combox.option(random_engine_id);
 	place["eg"] << random_engine_combox;
@@ -180,7 +225,7 @@ int main()
 	random_engine_seed_textbox.set_accept([](wchar_t c) -> bool {
 		return c == 8 || c == 127 || std::isdigit(c);
 	});
-	random_engine_seed_textbox.events().text_changed([&seed, &random_engine_seed_textbox](){
+	random_engine_seed_textbox.events().text_changed([&seed, &random_engine_seed_textbox]() {
 		try {
 			seed = std::stoi(random_engine_seed_textbox.caption());
 			random_engine_seed_textbox.bgcolor(nana::colors::white);
@@ -214,11 +259,10 @@ int main()
 	place["delay"] << delay_text_box;
 
 
-
 	nana::label scale_label(main_form, "data scale");
 	place["scalel"] << scale_label;
 
-	size_t scale = 500;
+	size_t scale = 2000;
 	nana::textbox scale_text_box(main_form);
 	scale_text_box.set_accept([](wchar_t c) -> bool {
 		return c == 8 || c == 127 || std::isdigit(c);
@@ -239,23 +283,24 @@ int main()
 		nana::form animation_form(nana::API::make_center(1000, 600));
 		animation_form.bgcolor(nana::colors::grey);
 		animation_form.caption(
-			sorting_algorithm_name[sorting_algorithm_id] +
-			", " +
-			data_generate_method_name[data_generate_method_id] +
-			", " +
-			random_engine_name[random_engine_id] + " (with seed = " + std::to_string(seed) + ")" +
-			", " +
-			"scale = " + std::to_string(scale)
+				std::string(sorting_algorithms_module::sorting_algorithm_name[sorting_algorithm_id]) +
+				", " +
+				sequence_generator_module::sequence_generator_name[sequence_generator_id] +
+				", " +
+				random_engine_name[random_engine_id] + " (with seed = " + std::to_string(seed) + ")" +
+				", " +
+				"scale = " + std::to_string(scale)
 		);
 
 		nana::drawing dw(animation_form);
-
-		reseed_engine(seed);
-		std::vector<int> v = get_data_wrapper[data_generate_method_id](scale, engine_wrapper[random_engine_id]);
+		polymorphic_random_engine->seed(seed);
+		std::vector<int> v = sequence_generator_module::sequence_generator[sequence_generator_id]
+				(scale, *polymorphic_random_engine);
 		//for (auto e : v) {
 		//	std::cout << e << std::endl;
 		//}
-		std::unique_ptr<animation_base> animation = generate_animation[sorting_algorithm_id](animation_form, dw, delay);
+		std::unique_ptr<animation_base> animation = sorting_algorithms_module::generate_animation[sorting_algorithm_id](
+				animation_form, dw, delay);
 
 		std::thread animation_thread([&animation, &v] {
 			std::cout << "animation start!" << std::endl;
