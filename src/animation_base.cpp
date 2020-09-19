@@ -12,6 +12,7 @@
 #include <animation_base.hpp>
 
 #include <thread>
+#include <atomic>
 
 #include <nana/gui/drawing.hpp>
 #include <nana/gui/widgets/form.hpp>
@@ -31,7 +32,7 @@ void animation_base::start(std::vector<Ele>::iterator first, std::vector<Ele>::i
 
 	size_t n = v.size();
 
-	auto draw_one_ele = [this, n, mini, maxi](nana::paint::graphics& graphic, size_t i, const nana::color& color) {
+	auto draw_one_bar = [this, n, mini, maxi](nana::paint::graphics& graphic, size_t i, const nana::color& color) {
 		int left = fm.size().width * i / n;
 		int right = fm.size().width * (i + 1) / n;
 
@@ -45,10 +46,10 @@ void animation_base::start(std::vector<Ele>::iterator first, std::vector<Ele>::i
 	};
 
 
-	size_t cmp_cnt = 0;
+	std::atomic_size_t cmp_cnt(0);
 	{
 		size_t highlight[2];
-		dw.draw([this, n, &highlight, &draw_one_ele, &cmp_cnt](nana::paint::graphics& graphic) {
+		this->dw.draw([n, &highlight, &draw_one_bar, &cmp_cnt](nana::paint::graphics& graphic) {
 			for (size_t i = 0; i < n; ++i) {
 				nana::color color = nana::colors::white_smoke;
 				if (i == highlight[0]) {
@@ -56,7 +57,7 @@ void animation_base::start(std::vector<Ele>::iterator first, std::vector<Ele>::i
 				} else if (i == highlight[1]) {
 					color = nana::colors::green;
 				}
-				draw_one_ele(graphic, i, color);
+				draw_one_bar(graphic, i, color);
 			}
 			graphic.string({ 10, 10 }, "compare times: " + std::to_string(cmp_cnt));
 		});
@@ -71,29 +72,34 @@ void animation_base::start(std::vector<Ele>::iterator first, std::vector<Ele>::i
 			}
 			return value_compare(lhs, rhs);
 		});
-		dw.clear();
+		this->dw.clear();
 	}
 
 	{
 		size_t j = 0;
-		dw.draw([&j, n, &draw_one_ele, cmp_cnt](nana::paint::graphics& graphic) {
-			for (size_t i = 0; i < n; ++i) {
-				nana::color color = j < i ? nana::colors::white_smoke : nana::colors::green;
-				draw_one_ele(graphic, i, color);
+		this->dw.draw([&j, n, &draw_one_bar, cmp_cnt_caption = ("compare times: " + std::to_string(cmp_cnt))](nana::paint::graphics& graphic) {
+			size_t i = 0;
+			for (; i < j; ++i) {
+				nana::color color = nana::colors::green;
+				draw_one_bar(graphic, i, color);
 			}
-			graphic.string({ 10, 10 }, "compare times: " + std::to_string(cmp_cnt));
+			for (; i < n; ++i) {
+				nana::color color = nana::colors::white_smoke;
+				draw_one_bar(graphic, i, color);
+			}
+			graphic.string({ 10, 10 }, cmp_cnt_caption);
 		});
 		for (j = 0; j <= n; j += 10) {
 			this->dw.update();
 			std::this_thread::sleep_for(this->delay);
 		}
-		dw.clear();
+		this->dw.clear();
 	}
 	{
-		dw.draw([n, draw_one_ele, cmp_cnt](nana::paint::graphics& graphic) {
+		this->dw.draw([n, draw_one_bar, cmp_cnt = cmp_cnt.load()](nana::paint::graphics& graphic) {
 			nana::color color = nana::colors::green;
 			for (size_t i = 0; i < n; ++i) {
-				draw_one_ele(graphic, i, color);
+				draw_one_bar(graphic, i, color);
 			}
 			graphic.string({ 10, 10 }, "compare times: " + std::to_string(cmp_cnt));
 		});
