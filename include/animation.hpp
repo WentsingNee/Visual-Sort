@@ -27,53 +27,6 @@ class std_make_heap_then_sort_animation: public animation_base
 		}
 };
 
-class shell_sort_hibbard_sequence_animation : public animation_base
-{
-	using animation_base::animation_base;
-
-	virtual void sort(std::function<bool(const Ele&, const Ele&)>&& cmp) override
-	{
-		typedef decltype(this->v.begin()) iterator;
-		typedef typename kerbal::iterator::iterator_traits<iterator>::difference_type difference_type;
-		kerbal::algorithm::shell_sort(this->v.begin(), this->v.end(), cmp, kerbal::algorithm::shell_sort_hibbard_policy<difference_type>());
-	}
-};
-
-class shell_sort_minimun_limit_hibbard_sequence_animation : public animation_base
-{
-	using animation_base::animation_base;
-
-	virtual void sort(std::function<bool(const Ele&, const Ele&)>&& cmp) override
-	{
-		typedef decltype(this->v.begin()) iterator;
-		typedef typename kerbal::iterator::iterator_traits<iterator>::difference_type difference_type;
-		kerbal::algorithm::shell_sort(this->v.begin(), this->v.end(), cmp, kerbal::algorithm::shell_sort_minimun_limit_hibbard_policy<difference_type>());
-	}
-};
-
-class shell_sort_reduce_by_half_animation: public animation_base
-{
-		using animation_base::animation_base;
-
-		virtual void sort(std::function<bool(const Ele&, const Ele&)>&& cmp) override
-		{
-			typedef decltype(this->v.begin()) iterator;
-			typedef typename kerbal::iterator::iterator_traits<iterator>::difference_type difference_type;
-			kerbal::algorithm::shell_sort(this->v.begin(), this->v.end(), cmp, kerbal::algorithm::shell_sort_reduce_by_half_policy<difference_type>());
-		}
-};
-
-class shell_sort_q_animation: public animation_base
-{
-		using animation_base::animation_base;
-
-		virtual void sort(std::function<bool(const Ele&, const Ele&)>&& cmp) override
-		{
-			typedef decltype(this->v.begin()) iterator;
-			typedef typename kerbal::iterator::iterator_traits<iterator>::difference_type difference_type;
-			kerbal::algorithm::shell_sort(this->v.begin(), this->v.end(), cmp, kerbal::algorithm::shell_sort_q_policy<difference_type>());
-		}
-};
 
 #include <cstdlib>
 
