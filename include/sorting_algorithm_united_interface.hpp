@@ -15,7 +15,7 @@
 #include <vector>
 #include <functional>
 
-typedef std::vector<std::pair<int, int> >::iterator Iter;
+typedef std::vector<int>::iterator Iter;
 
 typedef std::function<bool(const Iter::value_type&, const Iter::value_type&)> BinaryPredict;
 

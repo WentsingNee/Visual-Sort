@@ -22,13 +22,14 @@ namespace nana
 	class drawing;
 }
 
-#include <template_instantiation/vector.inst.hpp>
-#include <sorting_algorithm_united_interface.hpp>
+#include "template_instantiation/vector.inst.hpp"
+
+#include "sorting_algorithm_united_interface.hpp"
 
 class animation_base
 {
 	public:
-		using Ele = std::pair<int, int>;
+		using Ele = int;
 
 	protected:
 		nana::form & fm;
@@ -46,8 +47,8 @@ class animation_base
 
 		virtual ~animation_base() = default;
 
-		void start(std::vector<int>::iterator first, std::vector<int>::iterator last,
-				   std::function<bool(const int&, const int&)> && value_compare);
+		void start(std::vector<Ele>::iterator first, std::vector<Ele>::iterator last,
+				   std::function<bool(const Ele&, const Ele&)> && value_compare);
 
 		virtual void sort(std::function<bool(const Ele&, const Ele&)>&& cmp) = 0;
 

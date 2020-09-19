@@ -16,22 +16,18 @@
 #include <nana/gui/drawing.hpp>
 #include <nana/gui/widgets/form.hpp>
 
-void animation_base::start(std::vector<int>::iterator first, std::vector<int>::iterator last,
-						   std::function<bool(const int&, const int&)>&& value_compare)
+void animation_base::start(std::vector<Ele>::iterator first, std::vector<Ele>::iterator last,
+						   std::function<bool(const Ele&, const Ele&)>&& value_compare)
 {
-	int mini = *std::min_element(first, last);
-	int maxi = *std::max_element(first, last);
-
+	int mini;
+	int maxi;
 	{
-		v.clear();
-
-		int i = 0;
-		while (first != last) {
-			v.emplace_back(*first, i);
-			++first;
-			++i;
-		}
+		auto p = std::minmax_element(first, last);
+		mini = *p.first;
+		maxi = *p.second;
 	}
+
+	v.assign(first, last);
 
 	size_t n = v.size();
 
@@ -43,7 +39,7 @@ void animation_base::start(std::vector<int>::iterator first, std::vector<int>::i
 		if (maxi == mini) {
 			height = fm.size().height / 2;
 		} else {
-			height = ((double)v[i].first - (double)mini) / ((double)maxi - (double)mini) * fm.size().height;
+			height = ((double)v[i] - (double)mini) / ((double)maxi - (double)mini) * fm.size().height;
 		}
 		graphic.rectangle(nana::rectangle(left, fm.size().height - height, right - left, height), true, color);
 	};
@@ -51,30 +47,29 @@ void animation_base::start(std::vector<int>::iterator first, std::vector<int>::i
 
 	size_t cmp_cnt = 0;
 	{
-		int highlight[2];
+		size_t highlight[2];
 		dw.draw([this, n, &highlight, &draw_one_ele, &cmp_cnt](nana::paint::graphics& graphic) {
 			for (size_t i = 0; i < n; ++i) {
 				nana::color color = nana::colors::white_smoke;
-				if (v[i].second == highlight[0]) {
+				if (i == highlight[0]) {
 					color = nana::colors::red;
-				} else if (v[i].second == highlight[1]) {
+				} else if (i == highlight[1]) {
 					color = nana::colors::green;
 				}
 				draw_one_ele(graphic, i, color);
 			}
 			graphic.string({ 10, 10 }, "compare times: " + std::to_string(cmp_cnt));
 		});
-		int i = 0;
 		using namespace std::chrono_literals;
 		this->sort([this, &value_compare, &highlight, &cmp_cnt](const Ele& lhs, const Ele& rhs) {
-			highlight[0] = lhs.second;
-			highlight[1] = rhs.second;
+			highlight[0] = &lhs - &*this->v.begin();
+			highlight[1] = &rhs - &*this->v.begin();
 			++cmp_cnt;
 			if (cmp_cnt % 10 == 0) {
 				this->dw.update();
 				std::this_thread::sleep_for(this->delay);
 			}
-			return value_compare(lhs.first, rhs.first);
+			return value_compare(lhs, rhs);
 		});
 		dw.clear();
 	}

@@ -46,7 +46,7 @@ struct sorting_algorithms_module
 				"kerbal::omp::quick_sort",
 //				"kerbal::omp::merge_sort",
 				"kerbal::omp::shell_sort",
-				"boost::flat_stable_skort",
+				"boost::flat_stable_sort",
 				"boost::pdqsort",
 				"boost::sample_sort",
 				"boost::spinsort",
@@ -91,7 +91,7 @@ struct sorting_algorithms_module
 				make_u<standard_animation<gfx::timsort<Iter, BinaryPredict> > >,
 		};
 
-		sorting_algorithms_module(nana::form& main_form, nana::place& place, nana::label& label, int& id,
+		sorting_algorithms_module(nana::form&, nana::place& place, nana::label& label, int& id,
 								  nana::combox& combox)
 		{
 			place["al"] << label;
