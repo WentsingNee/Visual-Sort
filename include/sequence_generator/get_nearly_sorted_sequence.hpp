@@ -20,7 +20,7 @@ std::vector<Tp> get_nearly_sorted_sequence(int n, Engine & eg)
 {
 	std::vector<Tp> v = get_sorted_sequence<Tp>(n, eg);
 
-	for (int i = 0; i < v.size() / 20; ++i) {
+	for (typename std::vector<Tp>::size_type i = 0; i < v.size() / 20; ++i) {
 		int lhs = eg() % v.size();
 		int rhs = eg() % v.size();
 		if (lhs != rhs) {

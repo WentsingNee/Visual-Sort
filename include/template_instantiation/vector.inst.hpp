@@ -15,6 +15,5 @@
 #include <vector>
 
 extern template class std::vector<int>;
-extern template class std::vector<std::pair<int, int> >;
 
 #endif // VISUAL_SORT_VECTOR_INST_HPP

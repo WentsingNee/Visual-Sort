@@ -22,7 +22,7 @@ std::vector<Tp> get_perlin_noise_sequence(int n, Engine & eg)
 	std::vector<Tp> v;
 	v.reserve(n);
 
-	kerbal::random::perlin_noise noise(eg);
+	kerbal::random::perlin_noise<> noise(eg);
 
 	for (int i = 0; i < n; ++i) {
 		auto r = 6000 * noise(i * 0.01);

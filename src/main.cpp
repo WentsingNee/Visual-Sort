@@ -22,7 +22,7 @@
 
 struct sorting_algorithms_module
 {
-		inline static constexpr const char * sorting_algorithm_name[] = {
+		static constexpr const char * const sorting_algorithm_name[] = {
 				"std::sort",
 				"std::stable_sort",
 				"c qsort",
@@ -53,14 +53,23 @@ struct sorting_algorithms_module
 				"gfx::timsort",
 		};
 
-		template <typename Animation>
-		static constexpr auto make_u = std::make_unique<Animation, nana::form&, nana::drawing&, std::chrono::microseconds&>;
+//		template <typename Animation>
+//		static constexpr auto make_u = [](nana::form& animation_form,
+//										  nana::drawing& dw,
+//										  std::chrono::microseconds& delay) -> std::unique_ptr<animation_base> {
+//			return std::make_unique<Animation>(animation_form, dw, delay);
+//		};
 
-		inline static std::function<std::unique_ptr<animation_base>(
-				nana::form& animation_form,
-				nana::drawing& dw,
-				std::chrono::microseconds& delay)>
-				generate_animation[] = {
+		template <typename Animation>
+		static
+		std::unique_ptr<animation_base>
+		make_u(nana::form& animation_form, nana::drawing& dw, std::chrono::microseconds& delay)
+		{
+			return std::make_unique<Animation>(animation_form, dw, delay);
+		};
+
+		static constexpr std::unique_ptr<animation_base>(* const generate_animation[])(nana::form&, nana::drawing&, std::chrono::microseconds&)
+			 = {
 				make_u<standard_animation<std::sort> >,
 				make_u<standard_animation<std::stable_sort> >,
 				make_u<c_qsort_animation>,
@@ -107,9 +116,12 @@ struct sorting_algorithms_module
 		}
 };
 
+constexpr const char * const sorting_algorithms_module::sorting_algorithm_name [];
+constexpr std::unique_ptr<animation_base>(* const sorting_algorithms_module::generate_animation[])(nana::form&, nana::drawing&, std::chrono::microseconds&);
+
 struct sequence_generator_module
 {
-		inline static constexpr const char* sequence_generator_name[] = {
+		static constexpr const char* const sequence_generator_name[] = {
 				"constant",
 				"random",
 				"sorted",
@@ -122,7 +134,7 @@ struct sequence_generator_module
 				"perlin_noise",
 		};
 
-		inline static constexpr std::vector<int> (* sequence_generator[])(int, polymorphic_random_engine&) = {
+		static constexpr std::vector<int> (* const sequence_generator[])(int, polymorphic_random_engine&) = {
 				get_constant_sequence,
 				get_random_sequence,
 				get_sorted_sequence,
@@ -136,6 +148,10 @@ struct sequence_generator_module
 		};
 
 };
+
+constexpr const char * const sequence_generator_module::sequence_generator_name [];
+constexpr std::vector<int> (* const sequence_generator_module::sequence_generator[])(int, polymorphic_random_engine&);
+
 
 int main()
 {
@@ -151,11 +167,11 @@ int main()
 			"<width=15>"
 			"<vert "
 			"<height=15>"
-			"<<al> <a> height=30>"
+			"<<al width=35%> <a> height=30>"
 			"<height=15>"
-			"<<seq_gen_lable> <seq_gen_combox> height=30>"
+			"<<seq_gen_lable width=35%> <seq_gen_combox> height=30>"
 			"<height=15>"
-			"<<egl> <eg> <width=30> <seedl> <seed> height=30>"
+			"<<egl> <eg> <width=20> <seedl> <seed> height=30>"
 			"<height=15>"
 			"< <<delayl> <delay>> <width=15> <<scalel> <scale>> <width=15> <start> height=30>"
 			"<height=15>"
@@ -241,9 +257,9 @@ int main()
 	place["delayl"] << delay_label;
 
 	using namespace std::chrono_literals;
-	std::chrono::microseconds delay = 50us;
+	std::chrono::microseconds delay = 10000us;
 	nana::textbox delay_text_box(main_form);
-	delay_text_box.caption("50");
+	delay_text_box.caption(std::to_string(delay.count()));
 	delay_text_box.set_accept([](wchar_t c) -> bool {
 		return c == 8 || c == 127 || std::isdigit(c);
 	});

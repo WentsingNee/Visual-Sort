@@ -12,4 +12,3 @@
 #include <template_instantiation/vector.inst.hpp>
 
 template class std::vector<int>;
-template class std::vector<std::pair<int, int> >;

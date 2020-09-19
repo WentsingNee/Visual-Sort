@@ -11,6 +11,7 @@
 
 #include <animation_base.hpp>
 
+#include <algorithm>
 #include <thread>
 #include <atomic>
 
@@ -20,29 +21,31 @@
 void animation_base::start(std::vector<Ele>::iterator first, std::vector<Ele>::iterator last,
 						   std::function<bool(const Ele&, const Ele&)>&& value_compare)
 {
+	v.assign(first, last);
+	size_t n = v.size();
+
 	int mini;
 	int maxi;
 	{
-		auto p = std::minmax_element(first, last);
+		auto p = std::minmax_element(v.begin(), v.end());
 		mini = *p.first;
 		maxi = *p.second;
 	}
 
-	v.assign(first, last);
-
-	size_t n = v.size();
-
 	auto draw_one_bar = [this, n, mini, maxi](nana::paint::graphics& graphic, size_t i, const nana::color& color) {
-		int left = fm.size().width * i / n;
-		int right = fm.size().width * (i + 1) / n;
+		const int width = graphic.width();
+		const int height = graphic.height();
 
-		int height;
+		int left = width * i / n;
+		int right = width * (i + 1) / n;
+
+		int bar_height;
 		if (maxi == mini) {
-			height = fm.size().height / 2;
+			bar_height = height / 2;
 		} else {
-			height = ((double)v[i] - (double)mini) / ((double)maxi - (double)mini) * fm.size().height;
+			bar_height = ((double)v[i] - (double)mini) / ((double)maxi - (double)mini) * height;
 		}
-		graphic.rectangle(nana::rectangle(left, fm.size().height - height, right - left, height), true, color);
+		graphic.rectangle(nana::rectangle(left, height - bar_height, right - left, bar_height), true, color);
 	};
 
 
@@ -51,14 +54,10 @@ void animation_base::start(std::vector<Ele>::iterator first, std::vector<Ele>::i
 		size_t highlight[2];
 		this->dw.draw([n, &highlight, &draw_one_bar, &cmp_cnt](nana::paint::graphics& graphic) {
 			for (size_t i = 0; i < n; ++i) {
-				nana::color color = nana::colors::white_smoke;
-				if (i == highlight[0]) {
-					color = nana::colors::red;
-				} else if (i == highlight[1]) {
-					color = nana::colors::green;
-				}
-				draw_one_bar(graphic, i, color);
+				draw_one_bar(graphic, i, nana::colors::white_smoke);
 			}
+			draw_one_bar(graphic, highlight[0], nana::colors::red);
+			draw_one_bar(graphic, highlight[1], nana::colors::green);
 			graphic.string({ 10, 10 }, "compare times: " + std::to_string(cmp_cnt));
 		});
 		using namespace std::chrono_literals;
@@ -80,12 +79,10 @@ void animation_base::start(std::vector<Ele>::iterator first, std::vector<Ele>::i
 		this->dw.draw([&j, n, &draw_one_bar, cmp_cnt_caption = ("compare times: " + std::to_string(cmp_cnt))](nana::paint::graphics& graphic) {
 			size_t i = 0;
 			for (; i < j; ++i) {
-				nana::color color = nana::colors::green;
-				draw_one_bar(graphic, i, color);
+				draw_one_bar(graphic, i, nana::colors::green);
 			}
 			for (; i < n; ++i) {
-				nana::color color = nana::colors::white_smoke;
-				draw_one_bar(graphic, i, color);
+				draw_one_bar(graphic, i, nana::colors::white_smoke);
 			}
 			graphic.string({ 10, 10 }, cmp_cnt_caption);
 		});
@@ -96,12 +93,12 @@ void animation_base::start(std::vector<Ele>::iterator first, std::vector<Ele>::i
 		this->dw.clear();
 	}
 	{
-		this->dw.draw([n, draw_one_bar, cmp_cnt = cmp_cnt.load()](nana::paint::graphics& graphic) {
-			nana::color color = nana::colors::green;
+		this->dw.draw([n, draw_one_bar, cmp_cnt_caption = ("compare times: " + std::to_string(cmp_cnt))](nana::paint::graphics& graphic) {
 			for (size_t i = 0; i < n; ++i) {
-				draw_one_bar(graphic, i, color);
+				draw_one_bar(graphic, i, nana::colors::green);
 			}
-			graphic.string({ 10, 10 }, "compare times: " + std::to_string(cmp_cnt));
+			graphic.string({ 10, 10 }, cmp_cnt_caption);
 		});
+		this->dw.update();
 	}
 }

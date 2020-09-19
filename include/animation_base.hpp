@@ -14,7 +14,6 @@
 
 #include <chrono>
 #include <functional>
-#include <vector>
 
 namespace nana
 {

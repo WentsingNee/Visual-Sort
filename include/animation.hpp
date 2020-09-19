@@ -35,15 +35,17 @@ void c_qsort_wrapper(Iterator first, Iterator last, Compare cmp)
 {
 	typedef typename kerbal::iterator::iterator_traits<Iterator>::value_type value_type;
 
-	static Compare cmp_sta(cmp);
+	static Compare * cmp_sta(&cmp); // qsort can not receive lambda with capture list
+
+	cmp_sta = &cmp; // reassign the cmp object
 
 	qsort(&*first, last - first, sizeof(value_type), [](const void * a, const void * b) {
 		value_type arg1 = *static_cast<const value_type*>(a);
 		value_type arg2 = *static_cast<const value_type*>(b);
 
-		if (cmp_sta(arg1, arg2))
+		if ((*cmp_sta)(arg1, arg2))
 			return -1;
-		if (cmp_sta(arg2, arg1))
+		if ((*cmp_sta)(arg2, arg1))
 			return 1;
 		return 0;
 	});

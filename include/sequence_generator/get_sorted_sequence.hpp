@@ -14,6 +14,7 @@
 
 #include <vector>
 #include <algorithm>
+#include <functional>
 #include "get_random_sequence.hpp"
 
 template <typename Tp, typename Engine>
