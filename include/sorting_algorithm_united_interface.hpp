@@ -15,7 +15,9 @@
 #include <vector>
 #include <functional>
 
-typedef std::vector<int>::iterator Iter;
+#include "access_hook_iterator.hpp"
+
+typedef access_hook_iterator<std::vector<int>::iterator> Iter;
 
 typedef std::function<bool(const Iter::value_type&, const Iter::value_type&)> BinaryPredict;
 

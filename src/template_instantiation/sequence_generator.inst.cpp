@@ -21,12 +21,13 @@
 #include <polymorphic_random_engine.hpp>
 
 template std::vector<int> get_constant_sequence(int, polymorphic_random_engine&);
-template std::vector<int> get_few_unique_sequence(int, polymorphic_random_engine&);
-template std::vector<int> get_nearly_sorted_sequence(int, polymorphic_random_engine&);
-template std::vector<int> get_perlin_noise_sequence(int, polymorphic_random_engine&);
 template std::vector<int> get_random_sequence(int, polymorphic_random_engine&);
+template std::vector<int> get_sorted_sequence(int, polymorphic_random_engine&);
+template std::vector<int> get_reverse_sequence(int, polymorphic_random_engine&);
+template std::vector<int> get_pipe_organ(int, polymorphic_random_engine&);
+template std::vector<int> get_nearly_sorted_sequence(int, polymorphic_random_engine&);
+template std::vector<int> get_few_unique_sequence(int, polymorphic_random_engine&);
 template std::vector<int> get_sawtooth_sequence(int, polymorphic_random_engine&);
 template std::vector<int> get_reverse_sawtooth_sequence(int, polymorphic_random_engine&);
 template std::vector<int> get_sin_wave_sequence(int, polymorphic_random_engine&);
-template std::vector<int> get_sorted_sequence(int, polymorphic_random_engine&);
-template std::vector<int> get_reverse_sequence(int, polymorphic_random_engine&);
+template std::vector<int> get_perlin_noise_sequence(int, polymorphic_random_engine&);

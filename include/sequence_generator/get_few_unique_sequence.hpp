@@ -18,7 +18,7 @@
 template <typename Tp, typename Engine>
 std::vector<Tp> get_few_unique_sequence(int n, Engine & eg)
 {
-	std::vector<Tp> v0 = get_sorted_sequence<Tp>(15, eg);
+	std::vector<Tp> v0 = get_sorted_sequence<Tp>(5, eg);
 
 	std::vector<Tp> v;
 

@@ -14,6 +14,7 @@
 
 #include <chrono>
 #include <functional>
+#include <nana/paint/graphics.hpp>
 
 namespace nana
 {
@@ -24,6 +25,7 @@ namespace nana
 #include "template_instantiation/vector.inst.hpp"
 
 #include "sorting_algorithm_united_interface.hpp"
+#include "access_hook_iterator.hpp"
 
 class animation_base
 {
@@ -37,10 +39,13 @@ class animation_base
 
 		std::vector<Ele> v;
 
+		void(*const SortAlgo)(Iter first, Iter last, BinaryPredict cmp);
+
 
 	public:
-		animation_base(nana::form & fm, nana::drawing & dw, std::chrono::microseconds & delay)
-				: fm(fm), dw(dw), delay(delay)
+		animation_base(nana::form & fm, nana::drawing & dw, std::chrono::microseconds & delay,
+						   void(*const SortAlgo)(Iter first, Iter last, BinaryPredict cmp))
+				: fm(fm), dw(dw), delay(delay), SortAlgo(SortAlgo)
 		{
 		}
 
@@ -49,19 +54,25 @@ class animation_base
 		void start(std::vector<Ele>::iterator first, std::vector<Ele>::iterator last,
 				   std::function<bool(const Ele&, const Ele&)> && value_compare);
 
-		virtual void sort(std::function<bool(const Ele&, const Ele&)>&& cmp) = 0;
+//		virtual void draw(nana::paint::graphics& graphic) = 0;
 
 };
 
-template <void(*SortAlgo)(Iter first, Iter last, BinaryPredict cmp)>
 class standard_animation : public animation_base
 {
-		using animation_base::animation_base;
-
-		virtual void sort(std::function<bool(const Ele&, const Ele&)>&& cmp) override
+	public:
+		standard_animation(nana::form & fm, nana::drawing & dw, std::chrono::microseconds & delay,
+						   void(*const SortAlgo)(Iter first, Iter last, BinaryPredict cmp))
+				: animation_base(fm, dw, delay, SortAlgo)
 		{
-			SortAlgo(this->v.begin(), this->v.end(), cmp);
 		}
+
+//		std::function<void(nana::paint::graphics&)> event;
+//
+//		virtual void draw(nana::paint::graphics& graphic) override final
+//		{
+//			this->event(graphic);
+//		}
 };
 
 

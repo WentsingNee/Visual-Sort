@@ -16,6 +16,8 @@
 
 #include "animation.hpp"
 
+#include <kerbal/compatibility/static_assert.hpp>
+#include <kerbal/container/nonmember_container_access.hpp>
 #include <kerbal/random/linear_congruential_engine.hpp>
 #include <kerbal/random/mersenne_twister_engine.hpp>
 #include "polymorphic_random_engine.hpp"
@@ -25,6 +27,8 @@ struct sorting_algorithms_module
 		static constexpr const char * const sorting_algorithm_name[] = {
 				"std::sort",
 				"std::stable_sort",
+				"std_parallel_sort",
+				"std_parallel_stable_sort",
 				"c qsort",
 				"bubble sort",
 				"selection sort",
@@ -43,14 +47,22 @@ struct sorting_algorithms_module
 				"shell sort (minimun limit hibbard sequence)",
 				"shell sort (reduce by half)",
 				"shell sort (q)",
+				"radix sort",
 				"kerbal::omp::quick_sort",
 //				"kerbal::omp::merge_sort",
 				"kerbal::omp::shell_sort",
+#if BOOST_SORT_SUPPORT
+				"boost::block_indirect_sort",
 				"boost::flat_stable_sort",
+				"boost::heap_sort",
 				"boost::pdqsort",
 				"boost::sample_sort",
 				"boost::spinsort",
+				"boost::spreadsort",
+				"boost::parallel_stable_sort",
+#endif
 				"gfx::timsort",
+				"freedom implement",
 		};
 
 //		template <typename Animation>
@@ -68,37 +80,57 @@ struct sorting_algorithms_module
 			return std::make_unique<Animation>(animation_form, dw, delay);
 		};
 
+		template <void(* SortAlgo)(Iter first, Iter last, BinaryPredict cmp)>
+		static
+		std::unique_ptr<animation_base>
+		make_s(nana::form& animation_form, nana::drawing& dw, std::chrono::microseconds& delay)
+		{
+			return std::make_unique<standard_animation>(animation_form, dw, delay, SortAlgo);
+		};
+
 		static constexpr std::unique_ptr<animation_base>(* const generate_animation[])(nana::form&, nana::drawing&, std::chrono::microseconds&)
 			 = {
-				make_u<standard_animation<std::sort> >,
-				make_u<standard_animation<std::stable_sort> >,
-				make_u<c_qsort_animation>,
-				make_u<standard_animation<kerbal::algorithm::bubble_sort> >,
-				make_u<standard_animation<kerbal::algorithm::selection_sort> >,
-				make_u<standard_animation<kerbal::algorithm::heap_sort> >,
-				make_u<std_make_heap_then_sort_animation>,
-				make_u<standard_animation<kerbal::algorithm::merge_sort> >,
-				make_u<standard_animation<kerbal::algorithm::inplace_merge_sort> >,
-				make_u<standard_animation<kerbal::algorithm::stable_sort> >,
-				make_u<standard_animation<kerbal::algorithm::insertion_sort> >,
-				make_u<standard_animation<kerbal::algorithm::directly_insertion_sort> >,
-				make_u<standard_animation<kerbal::algorithm::quick_sort> >,
-				make_u<standard_animation<kerbal::algorithm::nonrecursive_qsort> >,
-				make_u<standard_animation<kerbal::algorithm::intro_sort> >,
-				make_u<standard_animation<kerbal::algorithm::nonrecursive_intro_sort> >,
-				make_u<standard_animation<shell_sort_hibbard_sequence_wrapper> >,
-				make_u<standard_animation<shell_sort_minimun_limit_hibbard_sequence_wrapper> >,
-				make_u<standard_animation<shell_sort_reduce_by_half_wrapper> >,
-				make_u<standard_animation<shell_sort_q_wrapper> >,
-				make_u<kerbal_omp_quick_sort_animation>,
-//				make_u<kerbal_omp_merge_sort_animation>,
-				make_u<kerbal_omp_shell_sort_animation>,
-				make_u<standard_animation<boost::sort::flat_stable_sort> >,
-				make_u<standard_animation<boost::sort::pdqsort> >,
-				make_u<standard_animation<boost::sort::sample_sort> >,
-				make_u<standard_animation<boost::sort::spinsort> >,
-				make_u<standard_animation<gfx::timsort> >,
+				make_s<std::sort>,
+				make_s<std::stable_sort>,
+				make_s<std_parallel_sort_wrapper>,
+				make_s<std_parallel_stable_sort_wrapper>,
+				make_s<cqsort_wrapper>,
+				make_s<kerbal::algorithm::bubble_sort>,
+				make_s<kerbal::algorithm::selection_sort>,
+				make_s<kerbal::algorithm::heap_sort>,
+				make_s<std_make_heap_then_sort_wrapper>,
+				make_s<kerbal::algorithm::merge_sort>,
+				make_s<kerbal::algorithm::inplace_merge_sort>,
+				make_s<kerbal::algorithm::stable_sort>,
+				make_s<kerbal::algorithm::insertion_sort>,
+				make_s<kerbal::algorithm::directly_insertion_sort>,
+				make_s<kerbal::algorithm::quick_sort>,
+				make_s<kerbal::algorithm::nonrecursive_qsort>,
+				make_s<kerbal::algorithm::intro_sort>,
+				make_s<kerbal::algorithm::nonrecursive_intro_sort>,
+				make_s<shell_sort_hibbard_sequence_wrapper>,
+				make_s<shell_sort_minimun_limit_hibbard_sequence_wrapper>,
+				make_s<shell_sort_reduce_by_half_wrapper>,
+				make_s<shell_sort_q_wrapper>,
+				make_s<radix_sort_wrapper>,
+				make_s<omp_quick_sort_wrapper>,
+//				make_s<kerbal_omp_merge_sort_animation>,
+				make_s<omp_shell_sort_wrapper>,
+#if BOOST_SORT_SUPPORT
+				make_s<boost::sort::block_indirect_sort>,
+				make_s<boost::sort::flat_stable_sort>,
+				make_s<boost::sort::heap_sort>,
+				make_s<boost::sort::pdqsort>,
+				make_s<boost::sort::sample_sort>,
+				make_s<boost::sort::spinsort>,
+				make_s<boost_spreadsort_wrapper>,
+				make_s<boost_parallel_stable_sort_wrapper>,
+#endif
+				make_s<gfx::timsort>,
+				make_s<freedom_implement>,
 		};
+
+		KERBAL_STATIC_ASSERT(kerbal::container::size(sorting_algorithm_name) == kerbal::container::size(generate_animation), "not equal array length");
 
 		sorting_algorithms_module(nana::form&, nana::place& place, nana::label& label, int& id,
 								  nana::combox& combox)
@@ -126,8 +158,10 @@ struct sequence_generator_module
 				"random",
 				"sorted",
 				"reverse sorted",
+				"pipe organ",
 				"nearly sorted",
 				"few unique",
+				"push back",
 				"sawtooth",
 				"reverse sawtooth",
 				"sin",
@@ -139,8 +173,10 @@ struct sequence_generator_module
 				get_random_sequence,
 				get_sorted_sequence,
 				get_reverse_sequence,
+				get_pipe_organ,
 				get_nearly_sorted_sequence,
 				get_few_unique_sequence,
+				get_push_back_sequence,
 				get_sawtooth_sequence,
 				get_reverse_sawtooth_sequence,
 				get_sin_wave_sequence,
@@ -171,7 +207,7 @@ int main()
 			"<height=15>"
 			"<<seq_gen_lable width=35%> <seq_gen_combox> height=30>"
 			"<height=15>"
-			"<<egl> <eg> <width=20> <seedl> <seed> height=30>"
+			"<<egl width=30%> <eg width=30%> <width=30> <seedl> <seed> height=30>"
 			"<height=15>"
 			"< <<delayl> <delay>> <width=15> <<scalel> <scale>> <width=15> <start> height=30>"
 			"<height=15>"
@@ -263,7 +299,7 @@ int main()
 	delay_text_box.set_accept([](wchar_t c) -> bool {
 		return c == 8 || c == 127 || std::isdigit(c);
 	});
-	delay_text_box.events().text_changed([&delay_label, &delay_text_box, &delay]() {
+	delay_text_box.events().text_changed([&delay_text_box, &delay]() {
 		try {
 			int i = std::stoi(delay_text_box.caption());
 			delay = std::chrono::microseconds(i);
@@ -278,12 +314,12 @@ int main()
 	nana::label scale_label(main_form, "data scale");
 	place["scalel"] << scale_label;
 
-	size_t scale = 2000;
+	size_t scale = 1500;
 	nana::textbox scale_text_box(main_form);
 	scale_text_box.set_accept([](wchar_t c) -> bool {
 		return c == 8 || c == 127 || std::isdigit(c);
 	});
-	scale_text_box.events().text_changed([&scale_label, &scale_text_box, &scale]() {
+	scale_text_box.events().text_changed([&scale_text_box, &scale]() {
 		try {
 			scale = std::stoi(scale_text_box.caption());
 			scale_text_box.bgcolor(nana::colors::white);
